@@ -1,0 +1,29 @@
+{
+  "name": "svg-cleaner",
+  "version": "0.0.1",
+  "description": "Cleaning SVG Files - A port of Scour to JavaScript.",
+  "keywords": [
+    "svg",
+    "assets",
+    "cleaner"
+  ],
+  "homepage": "http://github.com/preciousforever/SVG-Cleaner",
+  "author": {
+    "name": "Michael Schieben",
+    "email": "michael@precious-forever.com",
+    "url": "http://rockitbaby.de"
+  },
+  "repository": {
+    "type" : "git",
+    "url" : "http://github.com/preciousforever/SVG-Cleaner"
+  },
+  "engines": {
+    "node": "0.6.x"
+  },
+  "dependencies": {
+    "underscore": "x.x.x",
+    "cheerio": "0.9.x",
+    "expect.js" : "*"
+  },
+  "bugs": "http://github.com/preciousforever/SVG-Cleaner/issues"
+}
