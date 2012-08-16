@@ -21,6 +21,7 @@
     "node": "0.6.x"
   },
   "dependencies": {
+    "cssom": "0.2.x",
     "underscore": "x.x.x",
     "cheerio": "0.9.x",
     "expect.js" : "*"

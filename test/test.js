@@ -127,11 +127,88 @@ describe('SVGCleaner', function() {
       var svg = '<?xml version="1.0" encoding="UTF-8" standalone="no"?><svg> \
                     <rect style="fill:#000000;" /> \
                 </svg>';
-      console.log("CONVERT");
       var cleanedSVG = SVGCleaner.clean(svg);
-      console.log(cleanedSVG);
       expect(cheerio.load(cleanedSVG)('rect').attr("style")).to.be(undefined);
       expect(cheerio.load(cleanedSVG)('rect').attr("fill")).to.equal('#000000');
+    });
+
+  });
+
+  describe('Removal of unreferenced elements', function() {
+
+    it('should keep elements that are referenced in style tags', function() {
+      var svg = '<?xml version="1.0" encoding="UTF-8" standalone="no"?><svg> \
+                  <style>#r {fill: url(\'#p\');}</style> \
+                  <defs><pattern id="p"><rect width="10" height="10" fill="#000000" /></pattern></defs>\
+                  <rect id="r" width="100" height="100" />\
+                </svg>';
+      var cleanedSVG = SVGCleaner.clean(svg);
+      expect(cheerio.load(cleanedSVG)('#p').length).to.be.above(0);
+    });
+
+    it('should keep elements that are referenced in elements fill attribute', function() {
+      var svg = '<?xml version="1.0" encoding="UTF-8" standalone="no"?><svg> \
+                  <defs><pattern id="p"><rect width="10" height="10" fill="#000000" /></pattern></defs>\
+                  <rect id="r" fill="url(#p)" width="100" height="100" />\
+                </svg>';
+      var cleanedSVG = SVGCleaner.clean(svg);
+      expect(cheerio.load(cleanedSVG)('#p').length).to.be.above(0);
+    });
+
+    it('should remove elements that are not referenced', function() {
+      var svg = '<?xml version="1.0" encoding="UTF-8" standalone="no"?><svg> \
+                  <defs><pattern id="p"><rect width="10" height="10" fill="#000000" /></pattern></defs>\
+                  <rect id="r" width="100" height="100" />\
+                </svg>';
+      var cleanedSVG = SVGCleaner.clean(svg);
+      expect(cheerio.load(cleanedSVG)('#p')).to.have.length(0);
+    });
+
+    it('should keep font definitions', function() {
+      var svg = '<?xml version="1.0" encoding="UTF-8" standalone="no"?><svg> \
+                  <defs><font id="not-referenced"></font></defs>\
+                  <rect id="r" width="100" height="100" />\
+                </svg>';
+      var cleanedSVG = SVGCleaner.clean(svg);
+
+      expect(cheerio.load(cleanedSVG)('font').length).to.be.above(0);
+    });
+
+    it('should keep referenced child elements in groups that are not referenced', function() {
+      var svg = '<?xml version="1.0" encoding="UTF-8" standalone="no"?><svg> \
+                  <defs><g id="not-referenced"><pattern id="referenced"><rect width="10" height="10" fill="#000000" /></pattern></g></defs>\
+                  <rect id="r" fill="url(#referenced)" width="100" height="100" />\
+                </svg>';
+      var cleanedSVG = SVGCleaner.clean(svg);
+      expect(cheerio.load(cleanedSVG)('#referenced').length).to.be.above(0);
+    });
+
+  });
+
+  describe('Removal of empty elements', function() {
+
+    it('should remove empty groups, defs and metadata', function() {
+      var svg = '<?xml version="1.0" encoding="UTF-8" standalone="no"?><svg> \
+                  <metadata></metadata> \
+                  <defs id="nested"><g id="empty"></g></defs> \
+                  <g></g> \
+                  <g>    </g> \
+                </svg>';
+      var cleanedSVG = SVGCleaner.clean(svg);
+      expect(cheerio.load(cleanedSVG)('g, defs, metadata')).to.have.length(0);
+    });
+
+  });
+
+  describe('Removal of unused attributes', function() {
+
+    it('should remove ids that are not referenced', function() {
+      var svg = '<?xml version="1.0" encoding="UTF-8" standalone="no"?><svg> \
+                  <defs><g id="not-referenced"><pattern id="referenced"><rect width="10" height="10" fill="#000000" /></pattern></g></defs>\
+                  <rect id="r" fill="url(#referenced)" width="100" height="100" />\
+                </svg>';
+      var cleanedSVG = SVGCleaner.clean(svg);
+      expect(cheerio.load(cleanedSVG)('g').attr('id')).to.be(undefined);
     });
 
   });
