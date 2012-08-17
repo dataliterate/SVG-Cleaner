@@ -15,7 +15,7 @@ The goal of the port was to bring the power of Scour to the JavaScript world, ma
 available as commandline tool and usable as module.
 
 I tried to and keep the ideas and way how Scour cleans SVG files. I translated most of
-the processing steps and copied most of the original comments from scour into the new
+the processing steps and copied the original comments from scour into the new
 source code, as they describe the original ideas best. I marked all of these orginial
 comments by putting 'Scour:' in the first line an used the markdown syntax for quotes (>). 
 
