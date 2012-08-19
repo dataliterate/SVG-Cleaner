@@ -143,7 +143,7 @@ describe('SVGCleaner', function() {
                   <rect id="r" width="100" height="100" />\
                 </svg>';
       var cleanedSVG = SVGCleaner.clean(svg);
-      expect(cheerio.load(cleanedSVG)('#p').length).to.be.above(0);
+      expect(cheerio.load(cleanedSVG)('pattern').length).to.be.above(0);
     });
 
     it('should keep elements that are referenced in elements fill attribute', function() {
@@ -152,7 +152,7 @@ describe('SVGCleaner', function() {
                   <rect id="r" fill="url(#p)" width="100" height="100" />\
                 </svg>';
       var cleanedSVG = SVGCleaner.clean(svg);
-      expect(cheerio.load(cleanedSVG)('#p').length).to.be.above(0);
+      expect(cheerio.load(cleanedSVG)('pattern').length).to.be.above(0);
     });
 
     it('should remove elements that are not referenced', function() {
@@ -161,7 +161,7 @@ describe('SVGCleaner', function() {
                   <rect id="r" width="100" height="100" />\
                 </svg>';
       var cleanedSVG = SVGCleaner.clean(svg);
-      expect(cheerio.load(cleanedSVG)('#p')).to.have.length(0);
+      expect(cheerio.load(cleanedSVG)('pattern')).to.have.length(0);
     });
 
     it('should keep font definitions', function() {
@@ -180,7 +180,7 @@ describe('SVGCleaner', function() {
                   <rect id="r" fill="url(#referenced)" width="100" height="100" />\
                 </svg>';
       var cleanedSVG = SVGCleaner.clean(svg);
-      expect(cheerio.load(cleanedSVG)('#referenced').length).to.be.above(0);
+      expect(cheerio.load(cleanedSVG)('pattern').length).to.be.above(0);
     });
 
   });
@@ -209,6 +209,46 @@ describe('SVGCleaner', function() {
                 </svg>';
       var cleanedSVG = SVGCleaner.clean(svg);
       expect(cheerio.load(cleanedSVG)('g').attr('id')).to.be(undefined);
+    });
+
+  });
+
+  describe('Shortening of id', function() {
+
+    it('should shorten ids', function() {
+      var svg = '<?xml version="1.0" encoding="UTF-8" standalone="no"?><svg> \
+                  <defs><pattern id="referenced"><rect width="10" height="10" fill="#000000" /></pattern></defs>\
+                  <rect id="r" fill="url(#referenced)" width="100" height="100" />\
+                </svg>';
+      var cleanedSVG = SVGCleaner.clean(svg);
+      expect(cheerio.load(cleanedSVG)('pattern').attr('id')).to.be('a');
+    });
+    it('should change values of referencing attributes', function() {
+      var svg = '<?xml version="1.0" encoding="UTF-8" standalone="no"?><svg> \
+                  <defs><pattern id="referenced"><circle fill="#000000" /></pattern></defs>\
+                  <rect id="r" fill="url(#referenced)" width="100" height="100" />\
+                </svg>';
+      var cleanedSVG = SVGCleaner.clean(svg);
+      expect(cheerio.load(cleanedSVG)('rect').attr('fill')).to.be('url(#a)');
+    });
+    it('should change values of referencing inline styles', function() {
+      var svg = '<?xml version="1.0" encoding="UTF-8" standalone="no"?><svg> \
+                  <defs><pattern id="referenced"><circle fill="#000000" /></pattern> \
+                  <pattern id="referenced-twice"><circle fill="#000000" /></pattern></defs>\
+                  <rect id="r" style="fill:url(#referenced-twice); stroke:url(#referenced)" width="100" height="100" />\
+                  <path style="fill:url(#referenced-twice);" />\
+                </svg>';
+      var cleanedSVG = SVGCleaner.clean(svg, {styleToAttributes: false});
+      expect(cheerio.load(cleanedSVG)('rect').attr('style')).to.be('fill:url(#a);stroke:url(#b);');
+    });
+    it('should change values style tags', function() {
+      var svg = '<?xml version="1.0" encoding="UTF-8" standalone="no"?><svg> \
+                  <style>#r{fill:url("#referenced");}</style> \
+                  <defs><pattern id="referenced"><circle fill="#000000" /></pattern></defs> \
+                  <rect id="r" width="100" height="100" />\
+                </svg>';
+      var cleanedSVG = SVGCleaner.clean(svg, {styleToAttributes: false});
+      expect(cheerio.load(cleanedSVG)('style').text()).to.be('#r{fill:url(#a);}');
     });
 
   });
