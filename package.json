@@ -23,8 +23,14 @@
   "dependencies": {
     "cssom": "0.2.x",
     "underscore": "x.x.x",
-    "cheerio": "0.9.x",
+    "cheerio": "0.9.x"
+  },
+  "devDependencies": {
+    "mocha": "*",
     "expect.js" : "*"
+  },
+  "scripts": {
+    "test": "make test"
   },
   "bugs": "http://github.com/preciousforever/SVG-Cleaner/issues"
 }

@@ -1,7 +1,7 @@
 // SVG Cleaner
 // ----------
 
-// Cleaning SVG Files - A port of Scour to JavaScript
+// Cleaning SVG Files - A (partial) port of Scour to JavaScript
 
 // About the port
 // --
@@ -13,8 +13,47 @@
 // used the markdown syntax for quotes (>). 
 
 // - Missing processing steps are marked with an comment '@missing'.
-// - Changed processing steps are marked with an comment containern '@extened' or '@changed'
+// - Changed processing steps are marked with an comment containern '@extended' or '@changed'
 // - Some functions and variable names are changed to (hopefully) be more descriptive.
+
+// The reason to released an partital port befor all features are implemted
+// is that SVG-Stacker needs parts of the library.
+// For those who need al cleaning features, please use scour.
+
+// Implemented
+// --
+// * Removal of namespaced elements and attributes
+// * Removal of comments
+// * Repairation of styles
+// * Removal of unreferenced elements
+// * Removal of empty elements
+// * Removal of unused attributes
+// * Shortening of id attribute values
+
+// Missing
+// --
+// * remove the xmlns: declarations now
+// * ensure namespace for SVG is declared
+// * check for redundant SVG namespace declaration
+// * convert colors to #RRGGBB format
+// * remove <metadata> if the user wants to
+// * flattend defs elements into just one defs element
+// * removeDuplicateGradientStops();
+// * remove gradients that are only referenced by one other gradient
+// * remove duplicate gradients
+// * createGroupsForCommonAttributes()
+// * move common attributes to parent group
+// * remove unused attributes from parent
+// * moveAttributesToParentGroup
+// * remove unnecessary closing point of polygons and scour points
+// * scour points of polyline
+// * clean path data
+// * scour lengths (including coordinates)
+// * reducePrecision
+// * removeDefaultAttributeValues
+// * optimizeTransforms
+// * convert rasters references to base64-encoded strings
+// * properly size the SVG document
 
 // Original Notes from Scour
 // --
@@ -58,6 +97,7 @@ var _ = require('underscore')
 // Namespace Prefixes that should be removed
 var namespacePrefixes = ['dc', 'rdf', 'sodipodi', 'cc', 'inkscape'];
 
+// ----------- ----------- ----------- ----------- ----------- -----------
 // Sanitize References
 // --
 
@@ -78,13 +118,22 @@ function removeUnreferencedIDs() {
 // Style-Properties and Element-Attributes that might contain an id, a reference to another object
 var referencingProperties = ['fill', 'stroke', 'filter', 'clip-path', 'mask',  'marker-start', 'marker-end', 'marker-mid'];
 
-function addReferencingElement(ids, id, node) {
+var REFERENCE_TYPE = {
+  STYLE_TAG: 0,
+  XLINK: 1,
+  STYLE_ATTRIBUTE: 2,
+  ATTRIBUTE: 4
+};
+function addReferencingElement(ids, id, referenceType, node, additionalInfo) {
   var id = id.replace(/#/g, '');
   if(!_(ids).has(id)) {
     ids[id] = [];
   }
 
-  ids[id].push(node);
+  if(_(additionalInfo).isUndefined()) {
+    additionalInfo = [];
+  }
+  ids[id].push([referenceType, node, additionalInfo]);
   return ids;
 }
 
@@ -95,6 +144,13 @@ function extractReferencedId(value) {
     return false;
   }
   return value.replace(/[\s]/g, '').slice(4, -1).replace(/["']/g, '');
+}
+
+// replaced #fromid in CSS url('#fromid') to url('#toid')
+function replaceReferencedId(value, idFrom, idTo) {
+  var re = new RegExp('url\\([\'"]?#' + idFrom + '[\'"]?\\)', 'g');
+  return value.replace(re, "url(#" + idTo + ")");
+
 }
 
 // Scour:
@@ -110,7 +166,6 @@ function findReferencedElements() {
 
   _($('*')).each(function(node) {
     var $node = $(node);
-    console.log(node.name);
 
     if(node.name == 'style') {
       var styles = CSSOM.parse($node.text());
@@ -119,7 +174,7 @@ function findReferencedElements() {
           if(_(rule.style).has(referencingProperty)) {
             var id = extractReferencedId(rule.style[referencingProperty]);
             if(id) {
-              addReferencingElement(ids, id, node);
+              addReferencingElement(ids, id, REFERENCE_TYPE.STYLE_TAG, node);
             }
           }
         });
@@ -130,32 +185,133 @@ function findReferencedElements() {
     // if xlink:href is set, then grab the id
     var href = $node.attr('xlink:href');
     if(href) {
-      addReferencingElement(ids, href, node);
+      addReferencingElement(ids, href, REFERENCE_TYPE.XLINK, node);
     }
 
     // now get all style properties
     var styles = parseStyles($node.attr('style'));
 
     _(referencingProperties).each(function(referencingProperty) {
+      // first check attributes
       var value = $node.attr(referencingProperty);
       if(!_.isUndefined(value)) {
         var id = extractReferencedId(value);
         if(id) {
-          addReferencingElement(ids, id, node);
+          addReferencingElement(ids, id, REFERENCE_TYPE.ATTRIBUTE, node, referencingProperty);
         }
       }
+      // then inline styles
       if(_(styles).has(referencingProperty)) {
         var id = extractReferencedId(styles[referencingProperty]);
         if(id) {
-          addReferencingElement(ids, id, node);
+          addReferencingElement(ids, id, REFERENCE_TYPE.STYLE_ATTRIBUTE, node);
         }
       }
     });
 
   });
 
-  console.log(ids);
   return ids;
+}
+
+// scour:
+// > Shortens ID names used in the document. ID names referenced the most often are assigned the
+// > shortest ID names.
+// @missing scour:
+// > If the list unprotectedElements is provided, only IDs from this list will be shortened.
+function shortenIDs(startNumber) {
+  if(_.isUndefined(startNumber)) {
+    startNumber = 1;
+  }
+  var $identifiedElements = $('[id]');
+  var referencedIDs = findReferencedElements();
+
+  // scour:
+  // > Make idList (list of idnames) sorted by reference count
+  // > descending, so the highest reference count is first.
+  // > First check that there's actually a defining element for the current ID name.
+  // > (Cyn: I've seen documents with #id references but no element with that ID!)
+
+  var idList = _(_(referencedIDs).keys()).filter(function(id) {
+    return ($identifiedElements.find('#' + id).size() > 0);
+  });
+  idList = _(idList).sortBy(function(id) {
+    return referencedIDs[id].length;
+  }).reverse();
+
+  _(idList).each(function(id) {
+    var shortendID = intToID(startNumber++);
+
+    // scour:
+    // > First make sure that *this* element isn't already using
+    // > the ID name we want to give it.
+    if(id == shortendID) {
+      return;
+    }
+    // scour:
+    // > Then, skip ahead if the new ID is already in identifiedElement
+    while($identifiedElements.find('#' + shortendID).size() > 0) {
+      shortendID = intToID(startNumber++);
+    }
+    // scour:
+    // > Then go rename it.
+    renameID(id, shortendID, $identifiedElements, referencedIDs);
+    
+  });
+
+}
+
+// scour:
+// > Returns the ID name for the given ID number, spreadsheet-style, i.e. from a to z,
+// > then from aa to az, ba to bz, etc., until zz.
+function intToID(num) {
+  var idName = '';
+  while (num > 0) {
+    num--;
+    idName = String.fromCharCode((num % 26) + 'a'.charCodeAt(0)) + idName;
+    num = Math.floor(num / 26)
+  }
+  return idName;
+}
+
+// scour:
+// > Changes the ID name from idFrom to idTo, on the declaring element
+// > as well as all references in the document doc.
+// > 
+// > Updates identifiedElements and referencedIDs.
+// > Does not handle the case where idTo is already the ID name
+// > of another element in doc.
+function renameID(idFrom, idTo, $identifiedElements, referencedIDs) {
+
+
+  var $definingNode = $identifiedElements.find('#' + idFrom);
+  $definingNode.attr('id', idTo);
+  var referringNodes = referencedIDs[idFrom];
+
+  _(referringNodes).each(function(referenceTypeNodeAndAdditionalInfos) {
+    var property = referenceTypeNodeAndAdditionalInfos[0];
+    var node = $(referenceTypeNodeAndAdditionalInfos[1]);
+    switch(property) {
+      case REFERENCE_TYPE.STYLE_TAG:
+        node.text(replaceReferencedId(node.text(), idFrom, idTo));
+        break;
+      case REFERENCE_TYPE.XLINK:
+        node.attr('xlink:href', '#' + idTo);
+        break;
+      case REFERENCE_TYPE.STYLE_ATTRIBUTE:
+        node.attr('style', replaceReferencedId(node.attr('style'), idFrom, idTo));
+        break;
+      case REFERENCE_TYPE.ATTRIBUTE:
+        var attributeName = referenceTypeNodeAndAdditionalInfos[2];
+        console.log(attributeName);
+        node.attr(attributeName, replaceReferencedId(node.attr(attributeName), idFrom, idTo));
+        break;
+      default:
+        // unkonw reference_type
+    }
+
+  });
+
 }
 
 // scour:
@@ -487,8 +643,9 @@ function clean(svgString, options) {
 }
 module.exports.clean = clean;
 
-function cleanFile(filename, options) {
-  return clean(fs.readFileSync(filename, 'utf-8'));
+function cleanFile(srcFilename, targetFilename, options) {
+  var svgString = clean(fs.readFileSync(srcFilename, 'utf-8'));
+  fs.writeFileSync(targetFilename, svgString, 'utf-8');
 }
 module.exports.cleanFile = cleanFile;
 
@@ -528,6 +685,10 @@ SVGCleaner.prototype.clean = function() {
 
   // @missing remove <metadata> if the user wants to
 
+  // @missing scour:
+  // > flattend defs elements into just one defs element
+  // flattenDefs()
+
   // scour:
   // > remove unreferenced gradients/patterns outside of defs
   // > and most unreferenced elements inside of defs
@@ -542,7 +703,6 @@ SVGCleaner.prototype.clean = function() {
   do {
     elementWasRemoved = false;
     _($('defs, metadata, g')).each(function(node) {
-      console.log(node.children);
       if(!node.children.length) {
         $(node).remove();
         elementWasRemoved = true;
@@ -552,6 +712,72 @@ SVGCleaner.prototype.clean = function() {
 
   removeUnreferencedIDs();
 
+  // @missing:
+  // removeDuplicateGradientStops();
+
+  // @missing scour:
+  // > remove gradients that are only referenced by one other gradient
+  // collapseSinglyReferencedGradients();
+
+  // @missing scour:
+  // > remove duplicate gradients
+  // removeDuplicateGradients(doc)
+
+  // @missing scour: 
+  // > create `<g>` elements if there are runs of elements with the same attributes.
+  // > this MUST be before moveCommonAttributesToParentGroup.
+  // createGroupsForCommonAttributes()
+
+  // @missing scour:
+  // > move common attributes to parent group
+  // > NOTE: the if the <svg> element's immediate children
+  // > all have the same value for an attribute, it must not
+  // > get moved to the <svg> element. The <svg> element
+  // > doesn't accept fill=, stroke= etc.!
+
+  // @missing scour:
+  // > remove unused attributes from parent
+
+  // @missing scour:
+  // > Collapse groups LAST, because we've created groups. If done before
+  // > moveAttributesToParentGroup, empty `<g>`'s may remain.
+
+  // @missing scour:
+  // > remove unnecessary closing point of polygons and scour points
+
+  // @missing scour:
+  // > scour points of polyline
+
+  // @missing scour:
+  // > clean path data
+
+  // scour:
+  // > shorten ID names as much as possible
+  shortenIDs();
+
+  // @missing scour:
+  // > scour lengths (including coordinates)
+  
+  // @missing scour:
+  // > more length scouring in this function
+  // numBytesSavedInLengths = reducePrecision(doc.documentElement)
+  
+  // @missing scour:
+  // > remove default values of attributes
+  // numAttrsRemoved += removeDefaultAttributeValues(doc.documentElement, options) 
+  
+  // @missing scour:
+  // > reduce the length of transformation attributes
+  // numBytesSavedInTransforms = optimizeTransforms(doc.documentElement, options)
+  
+  // @missing scour:
+  // > convert rasters references to base64-encoded strings
+
+  // @missing scour:
+  // properly size the SVG document (ideally width/height should be 100% with a viewBox)
+
+
+
   this.$ = $;
   this.svg = $.html();
   return this.svg;
@@ -559,10 +785,16 @@ SVGCleaner.prototype.clean = function() {
 
 //cleanFile('test/files/simple.svg');
       var svg = '<?xml version="1.0" encoding="UTF-8" standalone="no"?><svg> \
-                  <metadata></metadata> \
-                  <defs><g id="empty"></g><font></font></defs> \
-                  <g fill="url(#g)"></g> \
-                  <g>    </g> \
-                  <g><!-- comment --></g> \
+                  <defs><pattern id="referenced"><rect width="10" height="10" fill="#000000" /></pattern></defs>\
+                  <defs><pattern id="referenced-one-time"><rect width="10" height="10" fill="#000000" /></pattern></defs>\
+                  <rect id="r" fill="url(#referenced)" width="100" height="100" />\
+                  <rect id="r" fill="url(#referenced)" width="100" height="100" />\
+                  <rect id="r" fill="url(#referenced-one-time)" width="100" height="100" />\
+                  <rect id="r" fill="url(#referenced-one-time)" width="100" height="100" />\
+                  <rect id="r" fill="url(#referenced-one-time)" width="100" height="100" />\
+                  <rect id="r" fill="url(#not-referenced)" width="100" height="100" />\
                 </svg>';
 console.log(clean(svg));
+console.log(parseFloat('23.3%'));
+console.log(parseFloat('23.40400px'));
+console.log(parseFloat('0.0000em'));
