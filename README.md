@@ -61,7 +61,7 @@ line and used the markdown syntax for quotes (>) to indent the original comment.
 - Changed processing steps are marked with an comment containern '@extended' or '@changed'
 - Some functions and variable names are changed to (hopefully) be more descriptive.
 
-You'll find the annotated JavaScript Source-Code in [docs/svg-cleaner.html](docs/svg-cleaner.html)
+Please see the [annotated JavaScript Source-Code](http://preciousforever.github.com/SVG-Cleaner/docs/svg-cleaner.html).
 
 Tests
 --
