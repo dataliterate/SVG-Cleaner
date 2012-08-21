@@ -1,4 +1,4 @@
-SVG Stacker
+SVG Cleaner
 ===========
 
 A tool for cleaning SVG Files - partial port of Scour to JavaScript.
