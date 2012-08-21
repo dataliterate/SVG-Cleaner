@@ -41,7 +41,6 @@ function cleanRasterCompareSvgFile(svgBeforeCleanFilename, done) {
 	SVGCleaner.cleanFile(svgBeforeCleanFilename, svgAfterCleanFilename);
 
 	function cleanup() {
-		return;
 		fs.unlinkSync(svgAfterCleanFilename);
 		fs.unlinkSync(rasterBeforeCleanFilename);
 		fs.unlinkSync(rasterAfterCleanFilename);
@@ -71,31 +70,31 @@ function cleanRasterCompareSvgFile(svgBeforeCleanFilename, done) {
 }
  describe('SVGCleaner Visual Results', function() {
 
-	it('should be the same before and after clean', function(done) {
 
-		var files = [
-			'acid'
-			, 'adobe'
-			, 'cascading-default-attribute-removal'
-			//, 'cdata'
-			, 'color-formats'
-			, 'comments'
-			, 'fill-none'
-		];
-		var allDone = _.after(files.length, function() {
-			done();
-		});
-		var i = 0;
-		function nextFile() {
-			cleanRasterCompareSvgFile('./test/files/' + files[i] + '.svg', function(err) {
-				if(err) throw err;
-				allDone();
-				i++;
-				if(i < files.length) {
-					nextFile();
-				}
-			});
-		}
-		nextFile();
-	});
+  var files = [
+    'acid'
+    , 'adobe'
+    , 'cascading-default-attribute-removal'
+    , 'cdata'
+    , 'color-formats'
+    , 'comments'
+    , 'fill-none'
+  ];
+
+  for(var i = 0; i < files.length; i++) {
+    var filename = files[i];
+
+    (function(filename, context) {
+      it.apply(context, [
+        'should be the same before and after clean for ' + filename,
+        function(done) {
+          cleanRasterCompareSvgFile('./test/files/' + filename + '.svg', function(err) {
+            if(err) throw err;
+            done();
+          });
+        }
+      ]);
+    })(filename, this);
+  }
+
 });
