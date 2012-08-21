@@ -1,0 +1,40 @@
+#!/usr/bin/env node
+
+var SVGCleaner = require('../lib/svg-cleaner')
+  , program = require('commander')
+  ;
+
+program
+  .version('0.0.1')
+  //.option('-i, --input', 'input file: location of svg file that should be cleaned')
+  //.option('-o, --output', 'output file')
+  ;
+
+var help = function(){
+  console.log('  Examples:');
+  console.log('');
+  console.log('    $ svg-cleaner INPUT_FILE OUTPUT_FILE');
+  console.log('        reads from INPUT_FILE, creates OUTPUT_FILE')
+  console.log('');
+}
+
+program.on('--help', help);
+
+program.parse(process.argv);
+
+console.log('');
+console.log('  SVG Cleaner');
+console.log('  -----------');
+console.log('');
+
+if(program.args.length != 2) {
+  console.log('  Illegal arguments');
+  console.log('  --');
+  help();
+  process.exit();
+}
+
+SVGCleaner.cleanFile(program.args[0], program.args[1]);
+
+console.log('  Done.');
+console.log('');
