@@ -63,7 +63,6 @@ line and used the markdown syntax for quotes (>) to indent the original comment.
 
 You'll find the annotated JavaScript Source-Code in [docs/svg-cleaner.html](docs/svg-cleaner.html)
 
-
 Tests
 --
 Tests are based on [mocha](http://visionmedia.github.com/mocha/), run `make test`.
@@ -170,4 +169,4 @@ License
 --
 SVG-Cleaner is released under the same license as Scour:
 
-[Apache License Version 2.0](SVG-Cleaner/docs/svg-cleaner.html)
+[Apache License Version 2.0](SVG-Cleaner/blob/master/LICENSE)
