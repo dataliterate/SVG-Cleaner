@@ -106,14 +106,18 @@ See descirption below:
 Implemented processing steps
 --
 * Removal of namespaced elements
+
   ```
   removeNSElements(namespacesToRemove);
   ```
+  
   `namespacesToRemove`: array of namespace prefixes, e.g.: ['dc', 'rdf', 'sodipodi', 'cc', 'inkscape']
 * Removal of namespaced attributes
+
   ```
-  removeNSElements(namespacesToRemove);
+  removeNSAttributes(namespacesToRemove);
   ```
+
   `namespacesToRemove`: array of namespace prefixes
 * Removal of comments
   ```
