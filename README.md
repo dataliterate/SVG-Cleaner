@@ -1,7 +1,7 @@
 SVG Stacker
 ===========
 
-A tool for cleaning SVG Files - (yet partial) port of Scour to JavaScript.
+A tool for cleaning SVG Files - partial port of Scour to JavaScript.
 
 Visit the original [Scour - an SVG scrubber, http://codedread.com/scour/](http://codedread.com/scour/)
 
@@ -47,7 +47,7 @@ Background
 I needed a library to work with [SVG-Stacker](http://github.com/preciousforever/SVG-Stacker),
 that could rename IDs and keep the references inside the SVG document structure intact.
 SVG-Stacker merges different svg files and needs to make sure that the ids from different
-files are unique in the merged version. If found that Scour implemented that feature.
+files are unique in the merged version. I found that Scour implemented that feature.
 
 The goal of the port was to bring the power of Scour to the JavaScript world, make it
 available as commandline tool and usable as module for node.js.
@@ -55,29 +55,23 @@ available as commandline tool and usable as module for node.js.
 I tried to keep the ideas and way how Scour cleans SVG files. I translated the processing steps
 and copied most of the original comments from scour into the new source code, as they describe
 the original ideas best. I marked all of these orginial comments by putting 'Scour:' in the first
-line an used the markdown syntax for quotes (>). 
+line and used the markdown syntax for quotes (>) to indent the original comment. 
 
 - Missing processing steps are marked with an comment '@missing'.
 - Changed processing steps are marked with an comment containern '@extended' or '@changed'
 - Some functions and variable names are changed to (hopefully) be more descriptive.
 
-You'll find the annotated Source-Code in [docs/svg-cleaner.html](docs/svg-cleaner.html)
+You'll find the annotated JavaScript Source-Code in [docs/svg-cleaner.html](docs/svg-cleaner.html)
 
 
 Tests
 --
-Tests are based on [mocha](http://visionmedia.github.com/mocha/).
-```
-make test
-```
+Tests are based on [mocha](http://visionmedia.github.com/mocha/), run `make test`.
 
 Visual tests are based on [phantomjs](http://phantomjs.org/). The idea is to render and rasterize
-both, the original SVG files and cleaned version of the SVG file and compare the rasterized results
-to ensure they are identical.
-Make sure you have installed phantomjs, then run.
-```
-make visualtest
-```
+both, the original SVG file and cleaned version of that SVG file to compare the rasterized results
+to ensure they are visualy identical.
+Make sure you have installed phantomjs, then run `make visualtest`.
 
 API
 --
@@ -103,7 +97,7 @@ SVGCleaner.writeFileSync(targetFilename);
 
 It makes sense to use clean(), as processing steps need to be performend in a specific order. To make
 use of single processing steps, you can call these steps directly.
-See descirption below:
+See description below:
 
 Implemented processing steps
 --
@@ -176,4 +170,4 @@ License
 --
 SVG-Cleaner is released under the same license as Scour:
 
-Apache License Version 2.0
+[Apache License Version 2.0](SVG-Cleaner/docs/svg-cleaner.html)
