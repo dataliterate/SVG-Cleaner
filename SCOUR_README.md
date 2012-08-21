@@ -1,4 +1,4 @@
-Original README for Scour:
+Original README from Scour:
 
 Scour
 =====
