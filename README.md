@@ -1,9 +1,11 @@
 SVG Stacker
 ===========
 
-A tool for cleaning SVG Files - (yet partial) port of Scour.py to JavaScript.
+A tool for cleaning SVG Files - (yet partial) port of Scour to JavaScript.
 
-[Visit the original Scour - an SVG scrubber at http://codedread.com/scour/](http://codedread.com/scour/)
+Visit the original [Scour - an SVG scrubber, http://codedread.com/scour/](http://codedread.com/scour/)
+
+Scour was created by Jeff Schiller.
 
 Please note that this is a partial port, which means it is not finsihed at all.
 For thoose who want to clean their SVG files and have them as clean as possible
@@ -56,10 +58,10 @@ the original ideas best. I marked all of these orginial comments by putting 'Sco
 line an used the markdown syntax for quotes (>). 
 
 - Missing processing steps are marked with an comment '@missing'.
-- Changed processing steps are marked with an comment containern '@extened' or '@changed'
+- Changed processing steps are marked with an comment containern '@extended' or '@changed'
 - Some functions and variable names are changed to (hopefully) be more descriptive.
 
-You'll find the annotated Source-Code in [docs/svg-cleaner.html]()
+You'll find the annotated Source-Code in [docs/svg-cleaner.html](docs/svg-cleaner.html)
 
 
 Tests
@@ -169,3 +171,9 @@ Processing steps in scour, that are not implemented yet:
 * optimizeTransforms
 * convert rasters references to base64-encoded strings
 * properly size the SVG document
+
+License
+--
+SVG-Cleaner is released under the same license as Scour:
+
+Apache License Version 2.0
