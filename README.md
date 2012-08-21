@@ -16,7 +16,7 @@ Installation & Usage
 As Command Line Tool
 ```
 npm install svg-cleaner -g
-svg-cleaner -i INPUT_FILE -o OUTPUT_FILE
+svg-cleaner INPUT_FILE OUTPUT_FILE
 ```
 
 As module - simple interface:
