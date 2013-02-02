@@ -22,16 +22,16 @@ svg-cleaner INPUT_FILE OUTPUT_FILE
 ```
 
 As module - simple interface:
-```
+```js
 var cleanedSvgString = require('svg-cleaner').clean(svgString);
 ```
 
-```
+```js
 require('svg-cleaner').cleanFileSync(srcFilename, targetFilename);
 ```
 
 As module - chainable interface
-```
+```js
 var SVGCleaner = require('svg-cleaner');
 var mySVGCleaner = SVGCleaner.createCleaner();
 mySVGCleaner.load(svgString)
@@ -74,7 +74,7 @@ Make sure you have installed phantomjs, then run `make visualtest`.
 
 API
 --
-```
+```js
 SVGCleaner.createCleaner();
 // creates SVG Cleaner instance
 
