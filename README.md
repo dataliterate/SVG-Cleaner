@@ -12,6 +12,11 @@ For thoose who want to clean their SVG files and have them as clean as possible
 as I highly recommend to use the original Scour.py.
 (Please see the list of implemented and missing processing steps below.)
 
+Alternatives
+-----------
+
+*Recommended!* Be sure to check out [SVGO, a Nodejs-based tool for optimizing SVG vector graphics files.](https://github.com/svg/svgo)
+
 Installation & Usage
 -----------
 
