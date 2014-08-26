@@ -32,7 +32,7 @@ var cleanedSvgString = require('svg-cleaner').clean(svgString);
 ```
 
 ```js
-require('svg-cleaner').cleanFileSync(srcFilename, targetFilename);
+require('svg-cleaner').cleanFile(srcFilename, targetFilename);
 ```
 
 As module - chainable interface
