@@ -1,6 +1,6 @@
 {
   "name": "svg-cleaner",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Cleaning SVG Files - A partial port of Scour to JavaScript.",
   "keywords": [
     "svg",
