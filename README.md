@@ -70,7 +70,7 @@ Please see the [annotated JavaScript Source-Code](http://preciousforever.github.
 
 Tests
 --
-Tests are based on [mocha](http://visionmedia.github.com/mocha/), run `make test`.
+Tests are based on [mocha](http://mochajs.org/), run `make test`.
 
 Visual tests are based on [phantomjs](http://phantomjs.org/). The idea is to render and rasterize
 both, the original SVG file and cleaned version of that SVG file to compare the rasterized results
